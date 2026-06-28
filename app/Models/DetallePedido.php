@@ -10,7 +10,7 @@ class DetallePedido extends Model
     protected $fillable = ['pedido_id', 'producto_id', 'cantidad', 'precio_unitario'];
 
     /**
-     * Justificación: belongsTo (Pertenece a)
+     * belongsTo (Pertenece a)
      * Este registro de detalle pertenece obligatoriamente a un solo pedido.
      */
     public function pedido()
@@ -19,7 +19,7 @@ class DetallePedido extends Model
     }
 
     /**
-     * Justificación: belongsTo (Pertenece a)
+     * belongsTo (Pertenece a)
      * Este registro de detalle hace referencia a un solo producto específico.
      */
     public function producto()

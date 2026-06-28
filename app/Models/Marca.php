@@ -10,11 +10,11 @@ class Marca extends Model
     protected $fillable = ['nombre', 'descripcion'];
 
     /**
-     * Justificación: hasMany (Uno a Muchos)
+     * hasMany (Uno a Muchos)
      * Una marca fabrica o tiene muchos productos en nuestro catálogo.
      */
     public function productos()
     {
-        return $this->hasMany(Productos::class);
+        return $this->hasMany(Producto::class);
     }
 }

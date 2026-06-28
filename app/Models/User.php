@@ -48,7 +48,7 @@ class User extends Authenticatable
     }
 
         /**
-     * Justificación para el examen: hasOne (Tiene uno)
+     * hasOne (Tiene uno)
      * Un usuario tiene una relación uno a uno con su perfil de información adicional.
      * Se usa hasOne porque la llave foránea se encuentra en la tabla externa ('perfiles').
      */

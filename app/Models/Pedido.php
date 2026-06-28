@@ -10,7 +10,7 @@ class Pedido extends Model
     protected $fillable = ['user_id', 'estado', 'total'];
 
     /**
-     * Justificación: belongsTo (Pertenece a)
+     * belongsTo (Pertenece a)
      * Un pedido es realizado por un único usuario. 
      * 'pedidos' tiene la llave foránea 'user_id'.
      */
@@ -20,7 +20,7 @@ class Pedido extends Model
     }
 
     /**
-     * Justificación: belongsToMany (Muchos a Muchos)
+     * belongsToMany (Muchos a Muchos)
      * Un pedido puede contener muchos productos diferentes.
      * Nuevamente, la tabla 'detalle_pedidos' funciona como puente.
      */
@@ -32,7 +32,7 @@ class Pedido extends Model
     }
 
     /**
-     * Justificación: hasMany (Uno a Muchos)
+     * hasMany (Uno a Muchos)
      * Alternativamente, si necesitas acceder directamente a las líneas del detalle
      * (por ejemplo, para calcular subtotales exactos desde el modelo).
      */

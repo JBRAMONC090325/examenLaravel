@@ -11,7 +11,7 @@ class Perfil extends Model
     protected $fillable = ['user_id', 'telefono', 'direccion', 'biografia'];
 
     /**
-     * Justificación para el examen: belongsTo (Pertenece a)
+     * belongsTo (Pertenece a)
      * El perfil pertenece a un único usuario específico.
      * Lleva belongsTo porque esta tabla ('perfiles') contiene la llave foránea 'user_id'.
      */
