@@ -10,32 +10,79 @@ class DetallePedidoController extends Controller
 {
     public function index()
     {
-        return response()->json(DetallePedido::all(), 200);
+        $detalles = DetallePedido::all();
+        return response()->json($detalles);
     }
 
     public function store(Request $request)
     {
+        $request->validate([
+            'pedido_id' => 'required|integer', 
+            'producto_id' => 'required|integer',
+            'cantidad' => 'required|integer|min:1',
+            'precio_unitario' => 'required|numeric|min:0',
+        ]);
+
         $detalle = DetallePedido::create($request->all());
-        return response()->json($detalle, 201);
+
+        return response()->json([
+            'message' => 'Detalle de pedido creado con éxito',
+            'data' => $detalle
+        ], 201);
     }
 
     public function show($id)
     {
-        $detalle = DetallePedido::findOrFail($id);
-        return response()->json($detalle, 200);
+        $detalle = DetallePedido::find($id);
+
+        if (!$detalle) {
+            return response()->json([
+                'message' => 'Detalle de pedido no encontrado'
+            ], 404);
+        }
+
+        return response()->json($detalle);
     }
 
     public function update(Request $request, $id)
     {
-        $detalle = DetallePedido::findOrFail($id);
+        $detalle = DetallePedido::find($id);
+
+        if (!$detalle) {
+            return response()->json([
+                'message' => 'Detalle de pedido no encontrado'
+            ], 404);
+        }
+
+        $request->validate([
+            'pedido_id' => 'required|integer',
+            'producto_id' => 'required|integer',
+            'cantidad' => 'required|integer|min:1',
+            'precio_unitario' => 'required|numeric|min:0',
+        ]);
+
         $detalle->update($request->all());
-        return response()->json($detalle, 200);
+
+        return response()->json([
+            'message' => 'Detalle de pedido actualizado con éxito',
+            'data' => $detalle
+        ]);
     }
 
     public function destroy($id)
     {
-        $detalle = DetallePedido::findOrFail($id);
+        $detalle = DetallePedido::find($id);
+
+        if (!$detalle) {
+            return response()->json([
+                'message' => 'Detalle de pedido no encontrado'
+            ], 404);
+        }
+
         $detalle->delete();
-        return response()->json(['message' => 'Detalle de pedido eliminado correctamente'], 200);
+
+        return response()->json([
+            'message' => 'Detalle de pedido eliminado correctamente'
+        ]);
     }
 }

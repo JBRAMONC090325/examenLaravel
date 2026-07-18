@@ -10,34 +10,77 @@ class PedidoController extends Controller
 {
     public function index()
     {
-        // Traemos el pedido con la información del usuario y los detalles
-        $pedidos = Pedido::with(['user', 'detalles'])->get();
-        return response()->json($pedidos, 200);
+        $pedidos = Pedido::all();
+        return response()->json($pedidos);
     }
 
     public function store(Request $request)
     {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'estado' => 'required|string|max:50',
+            'total' => 'required|numeric|min:0',
+        ]);
+
         $pedido = Pedido::create($request->all());
-        return response()->json($pedido, 201);
+
+        return response()->json([
+            'message' => 'Pedido creado con éxito',
+            'data' => $pedido
+        ], 201);
     }
 
     public function show($id)
     {
-        $pedido = Pedido::with(['user', 'detalles.producto'])->findOrFail($id);
-        return response()->json($pedido, 200);
+        $pedido = Pedido::find($id);
+
+        if (!$pedido) {
+            return response()->json([
+                'message' => 'Pedido no encontrado'
+            ], 404);
+        }
+
+        return response()->json($pedido);
     }
 
     public function update(Request $request, $id)
     {
-        $pedido = Pedido::findOrFail($id);
+        $pedido = Pedido::find($id);
+
+        if (!$pedido) {
+            return response()->json([
+                'message' => 'Pedido no encontrado'
+            ], 404);
+        }
+
+        $request->validate([
+            'user_id' => 'required|integer',
+            'estado' => 'required|string|max:50',
+            'total' => 'required|numeric|min:0',
+        ]);
+
         $pedido->update($request->all());
-        return response()->json($pedido, 200);
+
+        return response()->json([
+            'message' => 'Pedido actualizado con éxito',
+            'data' => $pedido
+        ]);
     }
 
     public function destroy($id)
     {
-        $pedido = Pedido::findOrFail($id);
+        $pedido = Pedido::find($id);
+
+        if (!$pedido) {
+            return response()->json([
+                'message' => 'Pedido no encontrado'
+            ], 404);
+        }
+
         $pedido->delete();
-        return response()->json(['message' => 'Pedido eliminado correctamente'], 200);
+
+        return response()->json([
+            'message' => 'Pedido eliminado correctamente'
+        ]);
     }
 }

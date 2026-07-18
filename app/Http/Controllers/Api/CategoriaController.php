@@ -10,32 +10,77 @@ class CategoriaController extends Controller
 {
     public function index()
     {
-        return response()->json(Categoria::all(), 200);
+        $categorias = Categoria::all();
+        return response()->json($categorias);
     }
 
     public function store(Request $request)
     {
+        $request->validate([
+            'nombre' => 'required|string|max:100',
+            'descripcion' => 'nullable|string|max:255',
+            'activo' => 'nullable|boolean',
+        ]);
+
         $categoria = Categoria::create($request->all());
-        return response()->json($categoria, 201);
+
+        return response()->json([
+            'message' => 'Categoría creada con éxito',
+            'data' => $categoria
+        ], 201);
     }
 
     public function show($id)
     {
-        $categoria = Categoria::findOrFail($id);
-        return response()->json($categoria, 200);
+        $categoria = Categoria::find($id);
+
+        if (!$categoria) {
+            return response()->json([
+                'message' => 'Categoría no encontrada'
+            ], 404);
+        }
+
+        return response()->json($categoria);
     }
 
     public function update(Request $request, $id)
     {
-        $categoria = Categoria::findOrFail($id);
+        $categoria = Categoria::find($id);
+
+        if (!$categoria) {
+            return response()->json([
+                'message' => 'Categoría no encontrada'
+            ], 404);
+        }
+
+        $request->validate([
+            'nombre' => 'required|string|max:100',
+            'descripcion' => 'nullable|string|max:255',
+            'activo' => 'nullable|boolean',
+        ]);
+
         $categoria->update($request->all());
-        return response()->json($categoria, 200);
+
+        return response()->json([
+            'message' => 'Categoría actualizada con éxito',
+            'data' => $categoria
+        ]);
     }
 
     public function destroy($id)
     {
-        $categoria = Categoria::findOrFail($id);
+        $categoria = Categoria::find($id);
+
+        if (!$categoria) {
+            return response()->json([
+                'message' => 'Categoría no encontrada'
+            ], 404);
+        }
+
         $categoria->delete();
-        return response()->json(['message' => 'Categoría eliminada correctamente'], 200);
+
+        return response()->json([
+            'message' => 'Categoría eliminada correctamente'
+        ]);
     }
 }
