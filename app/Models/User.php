@@ -10,7 +10,6 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -47,11 +46,6 @@ class User extends Authenticatable
         ];
     }
 
-        /**
-     * hasOne (Tiene uno)
-     * Un usuario tiene una relación uno a uno con su perfil de información adicional.
-     * Se usa hasOne porque la llave foránea se encuentra en la tabla externa ('perfiles').
-     */
     public function perfil()
     {
         return $this->hasOne(Perfil::class);
