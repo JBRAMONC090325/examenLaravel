@@ -26,7 +26,8 @@ class PedidoController extends Controller
 
         return response()->json([
             'message' => 'Pedido creado con éxito',
-            'data' => $pedido
+            'data' => $pedido,
+            'status' => true
         ], 201);
     }
 

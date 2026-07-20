@@ -25,7 +25,8 @@ class MarcaController extends Controller
 
         return response()->json([
             'message' => 'Marca creada con éxito',
-            'data' => $marca
+            'data' => $marca,
+            'status' => true
         ], 201);
     }
 

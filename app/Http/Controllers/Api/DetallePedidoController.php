@@ -27,7 +27,8 @@ class DetallePedidoController extends Controller
 
         return response()->json([
             'message' => 'Detalle de pedido creado con éxito',
-            'data' => $detalle
+            'data' => $detalle,
+            'status' => true
         ], 201);
     }
 

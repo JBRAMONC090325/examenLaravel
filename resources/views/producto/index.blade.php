@@ -2,8 +2,12 @@
 
 @section('content')
 
-<div class="container">
-    <h1>PRODUCTOS</h1>
+<div class="container shadow-lg p-3 mb-5 bg-body-tertiary rounded">
+    <div class="d-flex justify-content-between">
+        <h2>PRODUCTOS</h2>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearProducto">Nuevo Producto <i class="fa-solid fa-file-circle-plus"></i></button>
+    </div>
+    <hr>
     <table class="table">
         <thead>
             <tr>
@@ -11,8 +15,7 @@
             <th scope="col">Código de barras</th>
             <th scope="col">Precio</th>
             <th scope="col">Stock</th>
-            <th scope="col">Actualizar</th>
-            <th scope="col">Eliminar</th>
+            <th scope="col">Operaciones</th>
             </tr>
         </thead>
         <tbody id="tbody-producto">
@@ -21,12 +24,73 @@
     </table>
 </div>
 
+<!-- Modal -->
+<div class="modal fade" id="crearProducto" tabindex="-1" aria-labelledby="crearProductoLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="formulario">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Formulario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="codigo_barras" class="form-label">Código de barras</label>
+                        <input type="text" class="form-control" id="codigo_barras" name="codigo_barras" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="precio" class="form-label">Precio</label>
+                        <input type="text" class="form-control" id="precio" name="precio" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stock" class="form-label">Stock</label>
+                        <input type="text" class="form-control" id="stock" name="stock" required>
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="submit" class="btn btn-primary">Guardar <i class="fa-solid fa-floppy-disk"></i></button>
+            </div>
+        </div>
+    </form>
+  </div>
+</div>
+
 @push('scripts')
     <script>
         
         const API = '/api/productos'
 
         document.addEventListener('DOMContentLoaded',cargarProducto);
+
+        let formulario = document.getElementById("formulario")
+
+        formulario.addEventListener("submit", async function(e){
+            e.preventDefault();
+            const modalCrear = new bootstrap.Modal(document.getElementById("crearProducto"))
+
+            let data = new FormData(formulario)
+
+            const response = await fetch(API,{
+                method: "POST",
+                headers: {
+                    "Accept":"application/json"
+                },
+                body: data
+            })
+
+            const resultado = await response.json()
+
+            if(resultado.status){
+                formulario.reset()
+                modalCrear.hide()
+                cargarProducto()
+            }
+        })
 
         async function cargarProducto(){
             const response = await fetch(API)
@@ -44,14 +108,64 @@
                         <td>${prod.codigo_barras}</td>
                         <td>${prod.precio}</td>
                         <td>${prod.stock}</td>
-                        <td><button class="btn btn-primary">Actualizar</button></td>
-                        <td><button class="btn btn-danger">Eliminar</button></td>
+                        <td><button class="btn btn-primary" onclick="getProducto(${prod.id})"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button class="btn btn-danger" onclick="eliminarProducto(${prod.id})"><i class="fa-solid fa-trash-can"></i></button></td>
                     </tr>
                 `;
             });
 
             bodyProducto.innerHTML = html
         }
+
+        async function eliminarProducto(id){
+
+            let respuesta = confirm("Seguro que desea eliminar el producto?")
+            
+            if (!respuesta) return
+
+            const response = await fetch(`${API}/${id}`,{
+                method: "DELETE",
+                headers: {
+                    "Accept":"application/json"
+                }
+            })
+            
+            const resultado = await response.json()
+
+            alert(resultado.message)
+
+            cargarProducto()
+        }
+        
+        async function getProducto(id) {
+            const response = await fetch(`${API}/${id}`)
+            
+            const resultado = await response.json()
+
+            document.getElementById("nombre").value = resultado.nombre
+            document.getElementById("codigo_barras").value = resultado.codigo_barras
+            document.getElementById("precio").value = resultado.precio
+            document.getElementById("stock").value = resultado.stock
+
+            const modal = new bootstrap.Modal(document.getElementById("crearProducto"))
+            modal.show()
+
+        }
+
+        async function editarProducto(id) {
+
+            const response = await fetch(`${API}/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Accept":"application/json"
+                },
+                body: data
+            })
+            
+            const resultado = response.json()
+            
+        }
+
     </script>
 @endpush
 @endsection

@@ -27,7 +27,8 @@ class PerfilController extends Controller
 
         return response()->json([
             'message' => 'Perfil creado con éxito',
-            'data' => $perfil
+            'data' => $perfil,
+            'status' => true
         ], 201);
     }
 
