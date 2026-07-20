@@ -3,7 +3,7 @@
 @section('content')
 
 <div class="container shadow-lg p-3 mb-5 bg-body-tertiary rounded">
-    <div class="d-flex justify-content-between">
+    <div class="d-flex justify-content-evenly">
         <h2>CATEGORIAS</h2>
         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearCategoria">Nueva Categoría <i class="fa-solid fa-file-circle-plus"></i></button>
     </div>
