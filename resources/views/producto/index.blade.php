@@ -5,7 +5,7 @@
 <div class="container shadow-lg p-3 mb-5 bg-body-tertiary rounded">
     <div class="d-flex justify-content-evenly">
         <h2>PRODUCTOS</h2>
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearProducto">Nuevo Producto <i class="fa-solid fa-file-circle-plus"></i></button>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearProducto" onclick="prepararCreacion()">Nuevo Producto <i class="fa-solid fa-file-circle-plus"></i></button>
     </div>
     <hr>
     <table class="table">
@@ -28,6 +28,7 @@
 <div class="modal fade" id="crearProducto" tabindex="-1" aria-labelledby="crearProductoLabel" aria-hidden="true">
   <div class="modal-dialog">
     <form id="formulario">
+        <input type="hidden" id="producto_id" name="producto_id">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Formulario</h5>
@@ -62,35 +63,52 @@
 
 @push('scripts')
     <script>
-        
         const API = '/api/productos'
 
         document.addEventListener('DOMContentLoaded',cargarProducto);
 
         let formulario = document.getElementById("formulario")
 
+        function prepararCreacion() {
+            formulario.reset();
+            document.getElementById("producto_id").value = "";
+        }
+
         formulario.addEventListener("submit", async function(e){
             e.preventDefault();
-            const modalCrear = new bootstrap.Modal(document.getElementById("crearProducto"))
+            
+            let modalEl = document.getElementById("crearProducto");
+            let modalCrear = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
 
-            let data = new FormData(formulario)
+            let data = new FormData(formulario);
+            let id = document.getElementById("producto_id").value;
+            
+            let url = API;
 
-            const response = await fetch(API,{
-                method: "POST",
-                headers: {
-                    "Accept":"application/json"
-                },
-                body: data
-            })
+            if (id) {
+                url = `${API}/${id}`;
+                data.append('_method', 'PUT'); 
+        }
+
+            const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            },
+            body: data
+            });
 
             const resultado = await response.json()
 
-            if(resultado.status){
-                formulario.reset()
-                modalCrear.hide()
-                cargarProducto()
+            if(resultado.status || response.ok){
+                formulario.reset();
+                document.getElementById("producto_id").value = "";
+                modalCrear.hide();
+                cargarProducto();
+            } else {
+                alert("Hubo un error al guardar el producto.");
             }
-        })
+        });
 
         async function cargarProducto(){
             const response = await fetch(API)
@@ -138,32 +156,19 @@
         }
         
         async function getProducto(id) {
-            const response = await fetch(`${API}/${id}`)
+            const response = await fetch(`${API}/${id}`);
+            const resultado = await response.json();
+
+            document.getElementById("producto_id").value = resultado.id;
             
-            const resultado = await response.json()
+            document.getElementById("nombre").value = resultado.nombre;
+            document.getElementById("codigo_barras").value = resultado.codigo_barras;
+            document.getElementById("precio").value = resultado.precio;
+            document.getElementById("stock").value = resultado.stock;
 
-            document.getElementById("nombre").value = resultado.nombre
-            document.getElementById("codigo_barras").value = resultado.codigo_barras
-            document.getElementById("precio").value = resultado.precio
-            document.getElementById("stock").value = resultado.stock
-
-            const modal = new bootstrap.Modal(document.getElementById("crearProducto"))
-            modal.show()
-
-        }
-
-        async function editarProducto(id) {
-
-            const response = await fetch(`${API}/${id}`, {
-                method: "PUT",
-                headers: {
-                    "Accept":"application/json"
-                },
-                body: data
-            })
-            
-            const resultado = response.json()
-            
+            let modalEl = document.getElementById("crearProducto");
+            let modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
         }
 
     </script>

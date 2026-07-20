@@ -5,7 +5,7 @@
 <div class="container shadow-lg p-3 mb-5 bg-body-tertiary rounded">
     <div class="d-flex justify-content-evenly">
         <h2>CATEGORIAS</h2>
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearCategoria">Nueva Categoría <i class="fa-solid fa-file-circle-plus"></i></button>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearCategoria" onclick="prepararCreacion()">Nueva Categoría <i class="fa-solid fa-file-circle-plus"></i></button>
     </div>
     <hr>
     <table class="table">
@@ -27,6 +27,7 @@
 <div class="modal fade" id="crearCategoria" tabindex="-1" aria-labelledby="crearCategoriaLabel" aria-hidden="true">
   <div class="modal-dialog">
     <form id="formulario">
+        <input type="hidden" id="categoria_id" name="categoria_id">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Formulario</h5>
@@ -60,17 +61,32 @@
        
         const API = '/api/categorias'
 
-        document.addEventListener('DOMContentLoaded',cargarCategoria);
+        document.addEventListener('DOMContentLoaded', cargarCategoria);
 
-        let formulario = document.getElementById("formulario")
+        let formulario = document.getElementById("formulario");
+
+        function prepararCreacion() {
+            formulario.reset();
+            document.getElementById("categoria_id").value = "";
+        }
 
         formulario.addEventListener("submit", async function(e){
             e.preventDefault();
-            const modalCrear = new bootstrap.Modal(document.getElementById("crearCategoria"))
             
-            let data = new FormData(formulario)
+            let modalEl = document.getElementById("crearCategoria");
+            let modalCrear = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            
+            let data = new FormData(formulario);
+            let id = document.getElementById("categoria_id").value;
+            
+            let url = API;
 
-            const response = await fetch(API,{
+            if (id) {
+                url = `${API}/${id}`;
+                data.append('_method', 'PUT'); 
+            }
+
+            const response = await fetch(url, {
                 method: "POST",
                 headers: {
                     "Accept":"application/json"
@@ -80,20 +96,21 @@
 
             const resultado = await response.json()
 
-            if(resultado.status){
-                formulario.reset()
-                modalCrear.hide()
-                cargarCategoria()
+            if(resultado.status || response.ok){
+                formulario.reset();
+                document.getElementById("categoria_id").value = "";
+                modalCrear.hide();
+                cargarCategoria();
+            } else {
+                alert("Hubo un error al guardar la categoría.");
             }
         })
 
         async function cargarCategoria(){
             const response = await fetch(API)
-            
             const categoria = await response.json()
             
             let bodyCategoria = document.getElementById('tbody-categoria')
-
             let html = '';
 
             categoria.forEach(cat => {
@@ -112,8 +129,7 @@
         }
 
         async function eliminarCategoria(id){
-
-            let respuesta = confirm("Seguro que desea eliminar la categoria?")
+            let respuesta = confirm("¿Seguro que desea eliminar la categoría?")
             
             if (!respuesta) return
             
@@ -125,38 +141,23 @@
             })
             
             const resultado = await response.json()
-
             alert(resultado.message)
-
             cargarCategoria()
         }
 
         async function getCategoria(id) {
             const response = await fetch(`${API}/${id}`)
-            
             const resultado = await response.json()
 
-            document.getElementById("nombre").value = resultado.nombre
-            document.getElementById("descripcion").value = resultado.descripcion
-            document.getElementById("activo").value = resultado.activo
+            document.getElementById("categoria_id").value = resultado.id;
 
-            const modal = new bootstrap.Modal(document.getElementById("crearCategoria"))
-            modal.show()
+            document.getElementById("nombre").value = resultado.nombre;
+            document.getElementById("descripcion").value = resultado.descripcion;
+            document.getElementById("activo").value = resultado.activo;
 
-        }
-
-        async function editarCategoria(id) {
-
-            const response = await fetch(`${API}/${id}`, {
-                method: "PUT",
-                headers: {
-                    "Accept":"application/json"
-                },
-                body: data
-            })
-            
-            const resultado = response.json()
-            
+            let modalEl = document.getElementById("crearCategoria");
+            let modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
         }
 
     </script>

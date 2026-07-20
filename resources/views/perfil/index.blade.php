@@ -5,7 +5,9 @@
 <div class="container shadow-lg p-3 mb-5 bg-body-tertiary rounded">
     <div class="d-flex justify-content-evenly">
         <h2>PERFILES</h2>
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearPerfil">Nuevo Perfil <i class="fa-solid fa-file-circle-plus"></i></button>    </div>
+        <!-- Agregamos el evento onclick="prepararCreacion()" -->
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearPerfil" onclick="prepararCreacion()">Nuevo Perfil <i class="fa-solid fa-file-circle-plus"></i></button>
+    </div>
     <hr>
     <table class="table">
         <thead>
@@ -28,6 +30,9 @@
 <div class="modal fade" id="crearPerfil" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <form id="formulario">
+        <!-- Input oculto para manejar el ID en las ediciones -->
+        <input type="hidden" id="perfil_id" name="perfil_id">
+        
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Formulario</h5>
@@ -69,40 +74,59 @@
         
         const API = '/api/perfiles'
 
-        document.addEventListener('DOMContentLoaded',cargarPerfil);
+        document.addEventListener('DOMContentLoaded', cargarPerfil);
 
-        let formulario = document.getElementById("formulario")
+        let formulario = document.getElementById("formulario");
+
+        // Función para limpiar el formulario al crear uno nuevo
+        function prepararCreacion() {
+            formulario.reset();
+            document.getElementById("perfil_id").value = "";
+        }
 
         formulario.addEventListener("submit", async function(e){
             e.preventDefault();
-            const modalCrear = new bootstrap.Modal(document.getElementById("crearPerfil"))
+            
+            // Instancia correcta del modal para evitar problemas visuales
+            let modalEl = document.getElementById("crearPerfil");
+            let modalCrear = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
 
-            let data = new FormData(formulario)
+            let data = new FormData(formulario);
+            let id = document.getElementById("perfil_id").value;
+            
+            let url = API;
+            
+            // Si hay un ID, estamos editando. Modificamos la URL y agregamos _method PUT
+            if (id) {
+                url = `${API}/${id}`;
+                data.append('_method', 'PUT'); 
+            }
 
-            const response = await fetch(API,{
-                method: "POST",
+            const response = await fetch(url, {
+                method: "POST", // Siempre POST, Laravel captura el _method PUT
                 headers: {
-                    "Accept":"application/json"
+                    "Accept": "application/json"
                 },
                 body: data
-            })
+            });
 
-            const resultado = await response.json()
+            const resultado = await response.json();
 
-            if(resultado.status){
-                formulario.reset()
-                modalCrear.hide()
-                cargarPerfil()
+            if(resultado.status || response.ok){
+                formulario.reset();
+                document.getElementById("perfil_id").value = "";
+                modalCrear.hide();
+                cargarPerfil();
+            } else {
+                alert("Hubo un error al guardar el perfil.");
             }
-        })
+        });
 
         async function cargarPerfil(){
             const response = await fetch(API)
-            
             const perfil = await response.json()
             
             let bodyPerfil = document.getElementById('tbody-perfil')
-
             let html = '';
 
             perfil.forEach(perf => {
@@ -123,8 +147,7 @@
         }
 
         async function eliminarPerfil(id){
-
-            let respuesta = confirm("Seguro que desea eliminar el perfil?")
+            let respuesta = confirm("¿Seguro que desea eliminar el perfil?")
             
             if (!respuesta) return
             
@@ -136,16 +159,16 @@
             })
             
             const resultado = await response.json()
-
             alert(resultado.message)
-
             cargarPerfil()
         }
             
-         async function getPerfil(id) {
+        async function getPerfil(id) {
             const response = await fetch(`${API}/${id}`)
-            
             const resultado = await response.json()
+
+            // Asignamos el ID al input oculto
+            document.getElementById("perfil_id").value = resultado.id;
 
             document.getElementById("user_id").value = resultado.user_id
             document.getElementById("nombres").value = resultado.nombres
@@ -156,23 +179,9 @@
             const fechaFormateada = fechaObj.toISOString().split('T')[0];
             document.getElementById("fecha_nacimiento").value = fechaFormateada;
 
-            const modal = new bootstrap.Modal(document.getElementById("crearPerfil"))
+            let modalEl = document.getElementById("crearPerfil");
+            let modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
             modal.show()
-
-        }
-
-        async function editarPerfil(id) {
-
-            const response = await fetch(`${API}/${id}`, {
-                method: "PUT",
-                headers: {
-                    "Accept":"application/json"
-                },
-                body: data
-            })
-            
-            const resultado = response.json()
-            
         }
 
     </script>

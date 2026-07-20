@@ -5,7 +5,7 @@
 <div class="container shadow-lg p-3 mb-5 bg-body-tertiary rounded">
     <div class="d-flex justify-content-evenly">
         <h2>MARCAS</h2>
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearMarca">Nueva Marca <i class="fa-solid fa-file-circle-plus"></i></button>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearMarca" onclick="prepararCreacion()">Nueva Marca <i class="fa-solid fa-file-circle-plus"></i></button>
     </div>
     <hr>
     <table class="table">
@@ -26,6 +26,7 @@
 <div class="modal fade" id="crearMarca" tabindex="-1" aria-labelledby="crearMarcaLabel" aria-hidden="true">
   <div class="modal-dialog">
     <form id="formulario">
+        <input type="hidden" id="marca_id" name="marca_id">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Formulario</h5>
@@ -55,17 +56,32 @@
        
         const API = '/api/marcas'
 
-        document.addEventListener('DOMContentLoaded',cargarMarca);
+        document.addEventListener('DOMContentLoaded', cargarMarca);
 
-        let formulario = document.getElementById("formulario")
+        let formulario = document.getElementById("formulario");
+
+        function prepararCreacion() {
+            formulario.reset();
+            document.getElementById("marca_id").value = "";
+        }
 
         formulario.addEventListener("submit", async function(e){
             e.preventDefault();
-            const modalCrear = new bootstrap.Modal(document.getElementById("crearMarca"))
             
-            let data = new FormData(formulario)
+            let modalEl = document.getElementById("crearMarca");
+            let modalCrear = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            
+            let data = new FormData(formulario);
+            let id = document.getElementById("marca_id").value;
+            
+            let url = API;
 
-            const response = await fetch(API,{
+            if (id) {
+                url = `${API}/${id}`;
+                data.append('_method', 'PUT'); 
+            }
+
+            const response = await fetch(url, {
                 method: "POST",
                 headers: {
                     "Accept":"application/json"
@@ -75,20 +91,21 @@
 
             const resultado = await response.json()
 
-            if(resultado.status){
-                formulario.reset()
-                modalCrear.hide()
-                cargarMarca()
+            if(resultado.status || response.ok){
+                formulario.reset();
+                document.getElementById("marca_id").value = "";
+                modalCrear.hide();
+                cargarMarca();
+            } else {
+                alert("Hubo un error al guardar la marca.");
             }
         })
 
         async function cargarMarca(){
             const response = await fetch(API)
-            
             const marca = await response.json()
             
             let bodyMarca = document.getElementById('tbody-marca')
-
             let html = '';
 
             marca.forEach(mar => {
@@ -106,8 +123,7 @@
         }
 
         async function eliminarMarca(id){
-
-            let respuesta = confirm("Seguro que desea eliminar la marca?")
+            let respuesta = confirm("¿Seguro que desea eliminar la marca?")
             
             if (!respuesta) return
             
@@ -119,37 +135,22 @@
             })
             
             const resultado = await response.json()
-
             alert(resultado.message)
-
             cargarMarca()
         }
 
         async function getMarca(id) {
             const response = await fetch(`${API}/${id}`)
-            
             const resultado = await response.json()
 
-            document.getElementById("nombre").value = resultado.nombre
-            document.getElementById("descripcion").value = resultado.descripcion
+            document.getElementById("marca_id").value = resultado.id;
 
-            const modal = new bootstrap.Modal(document.getElementById("crearMarca"))
-            modal.show()
+            document.getElementById("nombre").value = resultado.nombre;
+            document.getElementById("descripcion").value = resultado.descripcion;
 
-        }
-
-        async function editarMarca(id) {
-
-            const response = await fetch(`${API}/${id}`, {
-                method: "PUT",
-                headers: {
-                    "Accept":"application/json"
-                },
-                body: data
-            })
-            
-            const resultado = response.json()
-            
+            let modalEl = document.getElementById("crearMarca");
+            let modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
         }
 
     </script>

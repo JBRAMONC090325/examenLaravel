@@ -5,7 +5,7 @@
 <div class="container shadow-lg p-3 mb-5 bg-body-tertiary rounded">
     <div class="d-flex justify-content-evenly">
         <h2>PEDIDOS</h2>
-        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearPedido">Nuevo Pedido <i class="fa-solid fa-file-circle-plus"></i></button>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#crearPedido" onclick="prepararCreacion()">Nuevo Pedido <i class="fa-solid fa-file-circle-plus"></i></button>
     </div>
     <hr>
     <table class="table">
@@ -27,6 +27,7 @@
 <div class="modal fade" id="crearPedido" tabindex="-1" aria-labelledby="crearPedidoLabel" aria-hidden="true">
   <div class="modal-dialog">
     <form id="formulario">
+        <input type="hidden" id="pedido_id" name="pedido_id">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">Formulario</h5>
@@ -62,15 +63,30 @@
 
         document.addEventListener('DOMContentLoaded',cargarPedido);
 
-        let formulario = document.getElementById("formulario")
+        let formulario = document.getElementById("formulario");
+
+        function prepararCreacion() {
+            formulario.reset();
+            document.getElementById("pedido_id").value = "";
+        }
 
         formulario.addEventListener("submit", async function(e){
             e.preventDefault();
-            const modalCrear = new bootstrap.Modal(document.getElementById("crearPedido"))
             
-            let data = new FormData(formulario)
+            let modalEl = document.getElementById("crearPedido");
+            let modalCrear = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            
+            let data = new FormData(formulario);
+            let id = document.getElementById("pedido_id").value;
+            
+            let url = API;
 
-            const response = await fetch(API,{
+            if (id) {
+                url = `${API}/${id}`;
+                data.append('_method', 'PUT'); 
+            }
+
+            const response = await fetch(url, {
                 method: "POST",
                 headers: {
                     "Accept":"application/json"
@@ -80,20 +96,21 @@
 
             const resultado = await response.json()
 
-            if(resultado.status){
-                formulario.reset()
-                modalCrear.hide()
-                cargarPedido()
+            if(resultado.status || response.ok){
+                formulario.reset();
+                document.getElementById("pedido_id").value = "";
+                modalCrear.hide();
+                cargarPedido();
+            } else {
+                alert("Hubo un error al guardar el pedido.");
             }
         })
 
         async function cargarPedido(){
             const response = await fetch(API)
-            
             const pedido = await response.json()
             
             let bodyPedido = document.getElementById('tbody-pedido')
-
             let html = '';
 
             pedido.forEach(ped => {
@@ -112,8 +129,7 @@
         }
 
         async function eliminarPedido(id){
-
-            let respuesta = confirm("Seguro que desea eliminar el pedido?")
+            let respuesta = confirm("¿Seguro que desea eliminar el pedido?")
             
             if (!respuesta) return
             
@@ -125,38 +141,23 @@
             })
             
             const resultado = await response.json()
-
             alert(resultado.message)
-
             cargarPedido()
         }
         
         async function getPedido(id) {
             const response = await fetch(`${API}/${id}`)
-            
             const resultado = await response.json()
 
-            document.getElementById("user_id").value = resultado.user_id
-            document.getElementById("estado").value = resultado.estado
-            document.getElementById("total").value = resultado.total
+            document.getElementById("pedido_id").value = resultado.id;
 
-            const modal = new bootstrap.Modal(document.getElementById("crearPedido"))
-            modal.show()
+            document.getElementById("user_id").value = resultado.user_id;
+            document.getElementById("estado").value = resultado.estado;
+            document.getElementById("total").value = resultado.total;
 
-        }
-
-        async function editarPedido(id) {
-
-            const response = await fetch(`${API}/${id}`, {
-                method: "PUT",
-                headers: {
-                    "Accept":"application/json"
-                },
-                body: data
-            })
-            
-            const resultado = response.json()
-            
+            let modalEl = document.getElementById("crearPedido");
+            let modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+            modal.show();
         }
 
     </script>
